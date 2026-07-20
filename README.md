@@ -32,6 +32,23 @@ webhook HMAC secrets and Discord credentials must remain separate values. Do
 not copy the bot's complete environment file or use a generic shared
 `JWT_SECRET`.
 
+### OAuth / SSO
+
+The `AuthModule` exposes the compatible OAuth endpoints under `/oauth` and
+supports authorization code grants with PKCE S256, Discord login, access and
+ID tokens, refresh-token rotation and scope-filtered identity responses.
+
+Identity tokens use the dedicated `IDENTITY_PRIVATE_KEY` and
+`IDENTITY_PUBLIC_KEY` RSA pair. `IDENTITY_KEY_ID` is written as `kid` so the
+pair can later be exposed through JWKS and rotated. Browser sessions use the
+independent `SESSION_SECRET`; webhook and Discord credentials must never reuse
+either identity or session key material.
+
+The supported scopes are `openid`, `identify` and `minecraft`. OAuth clients,
+redirect URIs and their allowed scopes continue to be managed in PostgreSQL.
+Discord OAuth uses its own client credentials and `DISCORD_REST_TOKEN` only for
+joining an authenticated user to the configured guild when necessary.
+
 ## Database ownership
 
 The service consumes the generated Prisma Client from `@triskcraft/db` through
