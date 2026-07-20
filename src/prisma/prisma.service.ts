@@ -1,9 +1,9 @@
 import { Injectable, OnApplicationShutdown } from '@nestjs/common';
-import { createPrismaClient, PrismaClient } from '@triskcraft/db';
+import type { PrismaClient } from '@triskcraft/db';
 
 @Injectable()
 export class PrismaService implements OnApplicationShutdown {
-  readonly client: PrismaClient = createPrismaClient();
+  constructor(readonly client: PrismaClient) {}
 
   async onApplicationShutdown() {
     await this.client.$disconnect();
