@@ -1,8 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { LegacyApiExceptionFilter } from './common/legacy-api-exception.filter';
 
 export function configureApplication(app: INestApplication) {
   app.enableShutdownHooks();
+  app.useGlobalFilters(new LegacyApiExceptionFilter());
 
   const document = SwaggerModule.createDocument(
     app,
