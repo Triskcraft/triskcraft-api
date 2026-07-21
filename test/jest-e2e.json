@@ -7,6 +7,7 @@
   "moduleNameMapper": {
     "^@triskcraft/db$": "<rootDir>/mocks/triskcraft-db.ts"
   },
+  "transformIgnorePatterns": ["node_modules/(?!.*jose)"],
   "transform": {
     "^.+\\.(t|j)s$": "@swc/jest"
   }
