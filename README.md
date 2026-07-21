@@ -73,11 +73,18 @@ per-token webhook secrets remain encrypted in PostgreSQL; the API decrypts
 them with the independent `WEBHOOK_ENCRYPTION_KEY`. No secret values are
 included in this documentation.
 
-`/webhooks/digs` is processed through an in-memory NestJS provider every ten
-seconds. Updates for the same player are coalesced to the latest value. Since
-the queue is intentionally not persistent yet, events still in memory are
-lost if the API process stops; a future implementation can replace the
-provider without changing the controller.
+`/webhooks/digs` is processed through an in-memory NestJS provider every second.
+Updates for the same player are coalesced to the latest value, reducing the
+write frequency while keeping the batching window short. Drains are serialized
+so overlapping scheduler invocations cannot apply stale values after newer
+ones.
+
+This queue is intentionally not persistent yet. The webhook returns `200` once
+the payload is accepted into the process-local queue, not once the database
+write completes. On Vercel, an invocation can be frozen or recycled after the
+response, so events still in memory may be lost. A durable outbox/job table is
+required if webhook delivery must survive process termination; the provider
+can be replaced with that implementation without changing the controller.
 
 ## Database ownership
 

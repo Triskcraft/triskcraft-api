@@ -20,6 +20,7 @@ export class InMemoryDigsQueue implements DigsQueue {
     string,
     { kind: 'uuid' | 'nickname'; digs: number }
   >();
+  private processing = false;
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -35,25 +36,32 @@ export class InMemoryDigsQueue implements DigsQueue {
     return Promise.resolve();
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_SECOND)
   async process() {
+    if (this.processing || this.entries.size === 0) return;
+
+    this.processing = true;
     const batch = new Map(this.entries);
     this.entries.clear();
-    for (const [identifier, entry] of batch) {
-      try {
-        await this.prisma.client.player.update({
-          where:
-            entry.kind === 'uuid'
-              ? { uuid: identifier, status: 'ACTIVE' }
-              : { nickname: identifier, status: 'ACTIVE' },
-          data: { digs: entry.digs },
-        });
-      } catch (error) {
-        if (!isPrismaNotFound(error)) {
-          // Events are intentionally best-effort while this queue is in memory.
-          console.error('Error updating digs', error);
+    try {
+      for (const [identifier, entry] of batch) {
+        try {
+          await this.prisma.client.player.update({
+            where:
+              entry.kind === 'uuid'
+                ? { uuid: identifier, status: 'ACTIVE' }
+                : { nickname: identifier, status: 'ACTIVE' },
+            data: { digs: entry.digs },
+          });
+        } catch (error) {
+          if (!isPrismaNotFound(error)) {
+            // Events are intentionally best-effort while this queue is in memory.
+            console.error('Error updating digs', error);
+          }
         }
       }
+    } finally {
+      this.processing = false;
     }
   }
 }
