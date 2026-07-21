@@ -19,4 +19,5 @@ export const environmentSchema = Joi.object({
   DISCORD_GUILD_ID: Joi.string().required(),
   DISCORD_REST_TOKEN: Joi.string().required(),
   SUPER_USER_DISCORD_ID: Joi.string().required(),
+  WEBHOOK_ENCRYPTION_KEY: Joi.string().required(),
 }).unknown(true);

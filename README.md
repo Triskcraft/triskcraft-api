@@ -49,6 +49,30 @@ redirect URIs and their allowed scopes continue to be managed in PostgreSQL.
 Discord OAuth uses its own client credentials and `DISCORD_REST_TOKEN` only for
 joining an authenticated user to the configured guild when necessary.
 
+### Signed webhooks
+
+The internal endpoints `/webhooks/digs`, `/webhooks/link` and
+`/webhooks/join` require a service JWT with the route-specific permission and
+the following headers:
+
+```text
+Authorization: Bearer <service-jwt>
+X-Timestamp: <unix-seconds>
+X-Signature: <sha256-hmac-hex>
+```
+
+The signature is calculated over the exact UTF-8 request bytes, without
+re-serializing JSON:
+
+```text
+HMAC_SHA256(webhook-secret, timestamp + "." + rawBody)
+```
+
+Requests outside the existing 15-second timestamp window are rejected. The
+per-token webhook secrets remain encrypted in PostgreSQL; the API decrypts
+them with the independent `WEBHOOK_ENCRYPTION_KEY`. No secret values are
+included in this documentation.
+
 ## Database ownership
 
 The service consumes the generated Prisma Client from `@triskcraft/db` through

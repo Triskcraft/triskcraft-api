@@ -19,3 +19,4 @@ process.env.DISCORD_REDIRECT_URI = 'https://api.example.com/oauth/discord';
 process.env.DISCORD_GUILD_ID = 'guild-id';
 process.env.DISCORD_REST_TOKEN = 'discord-rest-token';
 process.env.SUPER_USER_DISCORD_ID = 'super-user-id';
+process.env.WEBHOOK_ENCRYPTION_KEY = Buffer.alloc(32, 7).toString('base64');
