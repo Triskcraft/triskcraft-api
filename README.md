@@ -73,6 +73,12 @@ per-token webhook secrets remain encrypted in PostgreSQL; the API decrypts
 them with the independent `WEBHOOK_ENCRYPTION_KEY`. No secret values are
 included in this documentation.
 
+`/webhooks/digs` is processed through an in-memory NestJS provider every ten
+seconds. Updates for the same player are coalesced to the latest value. Since
+the queue is intentionally not persistent yet, events still in memory are
+lost if the API process stops; a future implementation can replace the
+provider without changing the controller.
+
 ## Database ownership
 
 The service consumes the generated Prisma Client from `@triskcraft/db` through

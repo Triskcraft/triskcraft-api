@@ -8,6 +8,7 @@ import { AppModule } from '../src/app.module';
 import { configureApplication } from '../src/configure-application';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { WebhookDiscordService } from '../src/webhooks/webhook-discord.service';
+import { InMemoryDigsQueue } from '../src/webhooks/digs-queue';
 
 describe('Signed webhooks (e2e)', () => {
   let app: INestApplication;
@@ -64,9 +65,30 @@ describe('Signed webhooks (e2e)', () => {
     const body = '[{"nickname":"Steve","digs":12}]';
     const response = await sendSigned('/webhooks/digs', body, 'digs');
     expect(response.status).toBe(200);
+    await app.get(InMemoryDigsQueue).process();
     expect(playerUpdate).toHaveBeenCalledWith({
       where: { nickname: 'Steve', status: 'ACTIVE' },
       data: { digs: 12 },
+    });
+  });
+
+  it('coalesces queued updates and processes the latest value', async () => {
+    await sendSigned(
+      '/webhooks/digs',
+      '[{"nickname":"Steve","digs":1}]',
+      'digs',
+    );
+    await sendSigned(
+      '/webhooks/digs',
+      '[{"nickname":"Steve","digs":7}]',
+      'digs',
+    );
+    playerUpdate.mockClear();
+    await app.get(InMemoryDigsQueue).process();
+    expect(playerUpdate).toHaveBeenCalledTimes(1);
+    expect(playerUpdate).toHaveBeenCalledWith({
+      where: { nickname: 'Steve', status: 'ACTIVE' },
+      data: { digs: 7 },
     });
   });
 
