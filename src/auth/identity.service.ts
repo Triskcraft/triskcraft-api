@@ -9,6 +9,8 @@ import {
 } from 'jose';
 import type { AccessTokenClaims } from './auth.types';
 
+const ACCESS_TOKEN_LIFETIME = '24h';
+
 @Injectable()
 export class IdentityService implements OnModuleInit {
   private privateKey!: Awaited<ReturnType<typeof importPKCS8>>;
@@ -37,7 +39,7 @@ export class IdentityService implements OnModuleInit {
       .setIssuedAt()
       .setIssuer(this.issuer)
       .setAudience(claims.aud)
-      .setExpirationTime('1h')
+      .setExpirationTime(ACCESS_TOKEN_LIFETIME)
       .sign(this.privateKey);
   }
 

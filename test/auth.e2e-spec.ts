@@ -191,6 +191,32 @@ describe('OAuth / SSO (e2e)', () => {
     ).toBe(true);
   });
 
+  it('requires guild membership for an existing Discord cookie', async () => {
+    discord.ensureGuildMembership.mockResolvedValueOnce(false);
+    const cookie = encodeURIComponent(
+      JSON.stringify({
+        token_type: 'Bearer',
+        access_token: 'discord-not-in-guild',
+        expires_in: 3600,
+        refresh_token: 'discord-refresh',
+        scope: 'identify guilds guilds.join',
+      }),
+    );
+
+    const response = await request(
+      app.getHttpServer() as Parameters<typeof request>[0],
+    )
+      .get(authorizeUrl('openid'))
+      .set('Cookie', `discord_access=${cookie}`)
+      .expect(302);
+
+    expect(response.headers.location).toContain('https://discord.example/');
+    expect(discord.ensureGuildMembership).toHaveBeenCalledWith(
+      'discord-not-in-guild',
+      'discord-1',
+    );
+  });
+
   it('handles the Discord callback and resumes authorization', async () => {
     discord.exchangeCode.mockResolvedValueOnce({
       token_type: 'Bearer',

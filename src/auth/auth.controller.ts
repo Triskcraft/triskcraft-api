@@ -93,6 +93,18 @@ export class AuthController {
       return;
     }
 
+    const discordUser = await this.discord.getUser(discordAccess.access_token);
+    if (
+      !discordUser ||
+      !(await this.discord.ensureGuildMembership(
+        discordAccess.access_token,
+        discordUser.id,
+      ))
+    ) {
+      this.redirectToDiscord(query, response);
+      return;
+    }
+
     try {
       const result = await this.auth.completeAuthorization(
         authorization,
