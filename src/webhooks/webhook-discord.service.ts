@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -12,10 +12,23 @@ export class WebhookDiscordService {
   }
 
   async getGuildMember(discordId: string) {
-    const response = await fetch(
-      `https://discord.com/api/v10/guilds/${this.guildId}/members/${discordId}`,
-      { headers: { Authorization: `Bot ${this.botToken}` } },
-    );
-    return response.ok;
+    try {
+      const response = await fetch(
+        `https://discord.com/api/v10/guilds/${this.guildId}/members/${discordId}`,
+        { headers: { Authorization: `Bot ${this.botToken}` } },
+      );
+      if (response.status === 404) return false;
+      if (!response.ok) {
+        throw new ServiceUnavailableException({
+          error: 'Discord service unavailable',
+        });
+      }
+      return true;
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) throw error;
+      throw new ServiceUnavailableException({
+        error: 'Discord service unavailable',
+      });
+    }
   }
 }

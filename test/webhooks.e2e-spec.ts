@@ -137,6 +137,38 @@ describe('Signed webhooks (e2e)', () => {
     }
   });
 
+  it('distinguishes a missing guild member from Discord failures', async () => {
+    const service = new WebhookDiscordService({
+      getOrThrow: (name: string) =>
+        name === 'DISCORD_GUILD_ID' ? 'guild-1' : 'bot-token',
+    } as never);
+    const originalFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = jest.fn(() =>
+        Promise.resolve(new Response(null, { status: 404 })),
+      );
+      await expect(service.getGuildMember('missing')).resolves.toBe(false);
+
+      globalThis.fetch = jest.fn(() =>
+        Promise.resolve(new Response(null, { status: 429 })),
+      );
+      await expect(
+        service.getGuildMember('rate-limited'),
+      ).rejects.toMatchObject({
+        status: 503,
+      });
+
+      globalThis.fetch = jest.fn(() =>
+        Promise.reject(new Error('Discord unavailable')),
+      );
+      await expect(service.getGuildMember('offline')).rejects.toMatchObject({
+        status: 503,
+      });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   async function sendSigned(path: string, body: string, permission: string) {
     const timestamp = Math.floor(Date.now() / 1000);
     const token = await webhookToken(permission);
