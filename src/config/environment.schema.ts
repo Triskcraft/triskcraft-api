@@ -20,4 +20,7 @@ export const environmentSchema = Joi.object({
   DISCORD_REST_TOKEN: Joi.string().required(),
   SUPER_USER_DISCORD_ID: Joi.string().required(),
   WEBHOOK_ENCRYPTION_KEY: Joi.string().required(),
+  S3_URL: Joi.string().uri().default('http://localhost:9000'),
+  S3_ACCESS_KEY_ID: Joi.string().default(''),
+  S3_SECRET_ACCESS_KEY: Joi.string().default(''),
 }).unknown(true);
