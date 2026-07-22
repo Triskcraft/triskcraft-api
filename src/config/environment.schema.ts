@@ -9,6 +9,7 @@ export const environmentSchema = Joi.object({
     .uri({ scheme: ['postgres', 'postgresql'] })
     .required(),
   API_URL: Joi.string().uri().required(),
+  CONSOLE_LOGIN_REDIRECT: Joi.string().uri().optional(),
   IDENTITY_PRIVATE_KEY: Joi.string().min(1).required(),
   IDENTITY_PUBLIC_KEY: Joi.string().min(1).required(),
   IDENTITY_KEY_ID: Joi.string().default('triskcraft-identity-1'),
@@ -20,4 +21,7 @@ export const environmentSchema = Joi.object({
   DISCORD_REST_TOKEN: Joi.string().required(),
   SUPER_USER_DISCORD_ID: Joi.string().required(),
   WEBHOOK_ENCRYPTION_KEY: Joi.string().required(),
+  S3_URL: Joi.string().uri().default('http://localhost:9000'),
+  S3_ACCESS_KEY_ID: Joi.string().default(''),
+  S3_SECRET_ACCESS_KEY: Joi.string().default(''),
 }).unknown(true);

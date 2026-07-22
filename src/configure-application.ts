@@ -1,9 +1,11 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LegacyApiExceptionFilter } from './common/legacy-api-exception.filter';
+import cookieParser from 'cookie-parser';
 
 export function configureApplication(app: INestApplication) {
   app.enableShutdownHooks();
+  app.use(cookieParser());
   app.useGlobalFilters(new LegacyApiExceptionFilter());
 
   const document = SwaggerModule.createDocument(
