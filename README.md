@@ -86,6 +86,22 @@ response, so events still in memory may be lost. A durable outbox/job table is
 required if webhook delivery must survive process termination; the provider
 can be replaced with that implementation without changing the controller.
 
+### Temporary administration console
+
+The existing administrative interface is available under `/console`. It keeps
+the OAuth/PKCE login, permission checks, modpack upload and role-management
+operations from the former Express runtime. The HTML layout and components are
+kept intentionally simple and compatible; this is a temporary home for the
+console, which should later be extracted into an independent administration
+application instead of being redesigned inside the API.
+
+### S3 files
+
+`GET /files/:bucket/:filename` streams objects from the configured S3-compatible
+service and preserves the existing download headers. The public aliases remain
+`web` (`public-web`) and `blog` (`blog-media`). The console uploads the SMP
+modpack to `public-web/pack-mods-triskcraftsmp.rar` using multipart streaming.
+
 ## Database ownership
 
 The service consumes the generated Prisma Client from `@triskcraft/db` through

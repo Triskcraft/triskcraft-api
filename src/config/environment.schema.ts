@@ -9,6 +9,7 @@ export const environmentSchema = Joi.object({
     .uri({ scheme: ['postgres', 'postgresql'] })
     .required(),
   API_URL: Joi.string().uri().required(),
+  CONSOLE_LOGIN_REDIRECT: Joi.string().uri().optional(),
   IDENTITY_PRIVATE_KEY: Joi.string().min(1).required(),
   IDENTITY_PUBLIC_KEY: Joi.string().min(1).required(),
   IDENTITY_KEY_ID: Joi.string().default('triskcraft-identity-1'),
