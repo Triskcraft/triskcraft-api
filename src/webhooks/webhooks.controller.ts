@@ -16,7 +16,7 @@ export class WebhooksController {
   @RequireWebhookPermissions('digs')
   @ApiOperation({ summary: 'Queue Minecraft digs updates' })
   digs(@Req() request: AuthenticatedWebhookRequest) {
-    return this.webhooks.updateDigs(request.rawBody!);
+    return this.webhooks.enqueueDigs(request.rawBody!);
   }
 
   @Post('link')

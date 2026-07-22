@@ -5,10 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { z } from 'zod';
+import { Inject } from '@nestjs/common';
+import { DIGS_QUEUE, type DigsQueue } from './digs-queue';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhookDiscordService } from './webhook-discord.service';
 
-const digsEntry = z.union([
+export const digsEntry = z.union([
   z.object({
     nickname: z.string().min(1, 'El nombre de usuario es obligatorio'),
     uuid: z.string().min(1, 'El id de usuario es obligatorio').optional(),
@@ -37,9 +39,10 @@ export class WebhooksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly discord: WebhookDiscordService,
+    @Inject(DIGS_QUEUE) private readonly digsQueue: DigsQueue,
   ) {}
 
-  async updateDigs(rawBody: Buffer) {
+  async enqueueDigs(rawBody: Buffer) {
     const body = this.parseJson(rawBody);
     const parsed = digsSchema.safeParse(body);
     if (!parsed.success) {
@@ -48,22 +51,7 @@ export class WebhooksService {
         details: z.treeifyError(parsed.error),
       });
     }
-    for (const entry of parsed.data) {
-      const identifier = entry.uuid ?? entry.nickname;
-      if (!identifier) continue;
-      try {
-        await this.prisma.client.player.update({
-          where: entry.uuid
-            ? { uuid: entry.uuid, status: 'ACTIVE' }
-            : { nickname: entry.nickname!, status: 'ACTIVE' },
-          data: { digs: entry.digs },
-        });
-      } catch (error) {
-        if (!isPrismaNotFound(error)) {
-          console.error('Error updating digs', error);
-        }
-      }
-    }
+    await this.digsQueue.enqueue(parsed.data);
     return {};
   }
 
