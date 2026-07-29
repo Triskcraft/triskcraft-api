@@ -65,7 +65,9 @@ export class WebhooksService {
     try {
       await this.prisma.client.player.update({
         where: { nickname: parsed.data.nickname },
-        data: {},
+        data: {
+          last_seen: new Date(),
+        },
       });
       return {};
     } catch (error) {
